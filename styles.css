@@ -92,11 +92,12 @@ a:focus-visible {
 }
 
 .brand-service {
-  color: var(--red);
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1;
+  text-transform: lowercase;
 }
 
 .brand-mark {
@@ -506,9 +507,8 @@ a:focus-visible {
   font-size: 23px;
 }
 
-.header-brand .brand-name,
 .header-brand .brand-service {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .header-profile-button {

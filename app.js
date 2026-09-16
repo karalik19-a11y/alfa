@@ -171,8 +171,8 @@ function renderGate() {
   return `<div class="gate-screen">
     <div class="gate-top">
       <div class="brand-lockup">
-        <span class="brand-mark">α</span>
-        <span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span>
+        <span class="brand-mark">А</span>
+        <span class="brand-text"><strong class="brand-service">tasks</strong></span>
         <span class="mini-pill">MINI APP</span>
       </div>
     </div>
@@ -203,8 +203,8 @@ function renderRejected() {
   return `<div class="rejected-screen">
     <div class="gate-top">
       <div class="brand-lockup">
-        <span class="brand-mark">α</span>
-        <span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span>
+        <span class="brand-mark">А</span>
+        <span class="brand-text"><strong class="brand-service">tasks</strong></span>
       </div>
     </div>
 
@@ -224,7 +224,7 @@ function renderRejected() {
 
 function renderAppHeader() {
   return `<header class="app-header">
-    <div class="header-brand"><span class="brand-mark">α</span><span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span></div>
+    <div class="header-brand"><span class="brand-mark">А</span><span class="brand-text"><strong class="brand-service">tasks</strong></span></div>
     ${avatarButton()}
   </header>`;
 }
@@ -259,7 +259,7 @@ function renderTaskHome() {
           <span class="task-icon">${icon('quote', 25)}</span>
           <span class="task-card-copy">
             <span class="task-meta"><span>Доступно сейчас</span><span>${icon('arrowUpRight', 13)}</span></span>
-            <span class="task-card-bottomless"><strong class="task-card-title">Отзывы</strong><span class="task-card-description">Поделись впечатлением и выбери свой уровень награды</span></span>
+            <span class="task-card-bottomless"><strong class="task-card-title">Отзывы</strong><span class="task-card-description">Оцени качество курьерской службы, а также процесс оформления фирменных продуктов Альфа-банка и получи награду! Вместе мы сможем повысить качество сервиса ❤️</span></span>
           </span>
         </div>
         <div class="task-card-bottom"><span>Простое задание</span><span class="arrow">Открыть ${icon('arrowRight', 13)}</span></div>
