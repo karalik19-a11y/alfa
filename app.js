@@ -172,7 +172,7 @@ function renderGate() {
     <div class="gate-top">
       <div class="brand-lockup">
         <span class="brand-mark">α</span>
-        <span>ALFA TASKS</span>
+        <span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span>
         <span class="mini-pill">MINI APP</span>
       </div>
     </div>
@@ -204,7 +204,7 @@ function renderRejected() {
     <div class="gate-top">
       <div class="brand-lockup">
         <span class="brand-mark">α</span>
-        <span>ALFA TASKS</span>
+        <span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span>
       </div>
     </div>
 
@@ -224,7 +224,7 @@ function renderRejected() {
 
 function renderAppHeader() {
   return `<header class="app-header">
-    <div class="header-brand"><span class="brand-mark">α</span><span>ALFA TASKS</span></div>
+    <div class="header-brand"><span class="brand-mark">α</span><span class="brand-text"><strong class="brand-name">АЛЬФА</strong><span class="brand-service">tasks</span></span></div>
     ${avatarButton()}
   </header>`;
 }
