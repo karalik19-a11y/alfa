@@ -29,7 +29,7 @@ async function sendFile(response, filePath) {
   const file = await readFile(filePath);
   response.writeHead(200, {
     'Content-Type': mimeTypes[extname(filePath)] || 'application/octet-stream',
-    'Cache-Control': process.env.NODE_ENV === 'production' ? 'public, max-age=3600' : 'no-cache',
+    'Cache-Control': 'no-store, max-age=0',
   });
   response.end(file);
 }
