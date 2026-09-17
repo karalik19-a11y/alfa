@@ -33,9 +33,13 @@ function safePath(urlPath) {
 async function sendFile(response, filePath, headOnly = false) {
   const fileInfo = await stat(filePath);
   if (!fileInfo.isFile()) throw new Error('Not a file');
+  const extension = extname(filePath).toLowerCase();
+  const isHtml = extension === '.html';
   response.writeHead(200, {
-    'Content-Type': mimeTypes[extname(filePath)] || 'application/octet-stream',
-    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+    'Content-Type': mimeTypes[extension] || 'application/octet-stream',
+    'Cache-Control': isHtml
+      ? 'no-cache, no-store, must-revalidate'
+      : 'public, max-age=31536000, immutable',
     'X-Content-Type-Options': 'nosniff',
   });
   if (headOnly) {
