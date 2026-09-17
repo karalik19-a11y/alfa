@@ -42,11 +42,8 @@ body {
 .task-list > .task-card:first-child .task-icon { border:1px solid rgba(239,27,45,.20)!important; background:linear-gradient(145deg,#fff 0%,#ffe7ea 100%)!important; box-shadow:0 10px 22px rgba(239,27,45,.13); }
 .task-list > .task-card:first-child .task-meta { color:#b70717!important; font-weight:900!important; }
 
-/* Clarify the Reviews intro without changing the underlying task flow. */
-.view-enter:has(.detail-hero) .info-card > p { font-size:0!important; line-height:1.5!important; }
-.view-enter:has(.detail-hero) .info-card > p::after { content:'Мы собираем обратную связь, чтобы лучше понимать опыт клиентов. Сейчас мы предоставим тебе подробную инструкцию — что нужно сделать и как пройти задание.'; display:block; font-size:15px; line-height:1.65; color:#65656b; }
-.view-enter:has(.detail-hero) .info-note span { font-size:0!important; }
-.view-enter:has(.detail-hero) .info-note span::after { content:'Мы ценим мнение каждого клиента'; font-size:14px; font-weight:800; color:#b70717; }
+/* Текст вступления «Перед началом» теперь живёт в renderIntro() (app.js),
+   CSS-подмена текста через ::after больше не нужна и удалена. */
 
 @media (max-width:600px) {
   .app-shell { border-top-width:5px; }

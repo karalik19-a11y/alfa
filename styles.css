@@ -46,8 +46,18 @@ a {
 }
 
 button {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
   border: 0;
+  color: inherit;
+  background: none;
   font: inherit;
+  cursor: pointer;
+}
+
+::selection {
+  background: rgba(240, 24, 40, 0.18);
 }
 
 button:focus-visible,
@@ -244,6 +254,7 @@ a:focus-visible {
   font-weight: 800;
   letter-spacing: -0.065em;
   line-height: 0.99;
+  text-wrap: balance;
   animation: fade-up 0.7s 0.12s var(--ease) both;
 }
 
@@ -321,34 +332,44 @@ a:focus-visible {
 .button {
   position: relative;
   display: inline-flex;
-  min-height: 54px;
+  min-height: 56px;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  padding: 15px 18px;
+  padding: 16px 20px;
   border: 1px solid transparent;
-  border-radius: 16px;
+  border-radius: 17px;
   color: var(--white);
-  background: var(--red);
-  box-shadow: 0 11px 22px rgba(240, 24, 40, 0.2);
+  background: linear-gradient(135deg, #ff3346 0%, #ef1b2d 52%, #d40c1e 100%);
+  box-shadow: 0 12px 26px rgba(240, 24, 40, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   cursor: pointer;
   font-size: 14px;
   font-weight: 800;
+  letter-spacing: 0.005em;
   line-height: 1.1;
   text-align: center;
   text-decoration: none;
-  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease), background 220ms ease;
+  transition: transform 230ms var(--ease), box-shadow 230ms var(--ease), filter 230ms ease, background 230ms ease, border-color 230ms ease, color 230ms ease;
 }
 
 .button:hover {
-  background: var(--red-strong);
-  box-shadow: 0 15px 29px rgba(240, 24, 40, 0.26);
+  box-shadow: 0 17px 34px rgba(240, 24, 40, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  filter: saturate(1.07) brightness(1.02);
   transform: translateY(-2px);
 }
 
 .button:active {
-  box-shadow: 0 7px 14px rgba(240, 24, 40, 0.19);
+  box-shadow: 0 8px 16px rgba(240, 24, 40, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  filter: none;
   transform: translateY(0) scale(0.985);
+}
+
+.button svg {
+  transition: transform 230ms var(--ease);
+}
+
+.button:hover svg:last-child {
+  transform: translateX(2px);
 }
 
 .button-dark {
@@ -408,12 +429,13 @@ a:focus-visible {
   color: var(--ink);
   background: var(--white);
   cursor: pointer;
-  transition: border-color 200ms ease, color 200ms ease, transform 200ms var(--ease);
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease, transform 200ms var(--ease);
 }
 
 .icon-button:hover {
   border-color: rgba(240, 24, 40, 0.3);
   color: var(--red);
+  background: var(--red-pale);
   transform: translateX(-2px);
 }
 
@@ -497,7 +519,11 @@ a:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  padding: 0;
+  border-radius: 16px;
   color: var(--ink);
+  background: transparent;
+  cursor: pointer;
 }
 
 .header-brand .brand-mark {
@@ -505,10 +531,21 @@ a:focus-visible {
   height: 54px;
   border-radius: 16px;
   font-size: 33px;
+  transition: transform 240ms var(--ease), box-shadow 240ms var(--ease);
+}
+
+.header-brand:hover .brand-mark {
+  box-shadow: 0 16px 32px rgba(240, 24, 40, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .header-brand .brand-service {
   font-size: 14px;
+  transition: color 200ms ease;
+}
+
+.header-brand:hover .brand-service {
+  color: var(--red);
 }
 
 .header-profile-button {
@@ -571,7 +608,23 @@ a:focus-visible {
 }
 
 .view-enter {
-  animation: fade-up 0.45s var(--ease) both;
+  animation: view-fade 0.28s ease both;
+}
+
+/* Каскадное появление блоков экрана — мягкий «переход» при навигации */
+.view-enter > * {
+  animation: fade-up 0.52s var(--ease) both;
+}
+
+.view-enter > *:nth-child(1) { animation-delay: 0.02s; }
+.view-enter > *:nth-child(2) { animation-delay: 0.07s; }
+.view-enter > *:nth-child(3) { animation-delay: 0.12s; }
+.view-enter > *:nth-child(4) { animation-delay: 0.17s; }
+.view-enter > *:nth-child(n + 5) { animation-delay: 0.22s; }
+
+@keyframes view-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .view-heading {
@@ -581,6 +634,7 @@ a:focus-visible {
   font-weight: 800;
   letter-spacing: -0.065em;
   line-height: 1;
+  text-wrap: balance;
 }
 
 .view-subheading {
@@ -766,6 +820,7 @@ a:focus-visible {
 .balance-amount {
   display: block;
   font-size: clamp(25px, 7vw, 34px);
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
   letter-spacing: -0.06em;
   line-height: 1;
@@ -775,8 +830,8 @@ a:focus-visible {
   display: block;
   margin-top: 12px;
   color: rgba(255, 255, 255, 0.79);
-  font-size: 10px;
-  line-height: 1.35;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .balance-orb {
@@ -819,6 +874,10 @@ a:focus-visible {
   border-color: rgba(240, 24, 40, 0.36);
   box-shadow: var(--shadow-small);
   transform: translateY(-3px);
+}
+
+.task-card:not(.locked):active {
+  transform: translateY(-1px) scale(0.995);
 }
 
 .task-card-available {
@@ -909,8 +968,8 @@ a:focus-visible {
   display: block;
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .reward-chip {
@@ -941,6 +1000,14 @@ a:focus-visible {
   align-items: center;
   gap: 5px;
   color: var(--red);
+}
+
+.task-card-bottom .arrow svg {
+  transition: transform 230ms var(--ease);
+}
+
+.task-card:not(.locked):hover .task-card-bottom .arrow svg {
+  transform: translateX(3px);
 }
 
 .locked-grid {
@@ -1114,12 +1181,18 @@ a:focus-visible {
   align-items: flex-start;
   gap: 9px;
   margin-top: 16px;
-  padding: 12px;
-  border-radius: 13px;
+  padding: 12px 13px;
+  border-left: 3px solid rgba(240, 24, 40, 0.45);
+  border-radius: 5px 13px 13px 5px;
   color: var(--red-dark);
   background: var(--red-pale);
-  font-size: 10px;
-  line-height: 1.5;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.info-note strong {
+  font-weight: 800;
 }
 
 .info-note svg {
@@ -1182,6 +1255,10 @@ a:focus-visible {
   transform: translateY(-3px);
 }
 
+.reward-option:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
 .reward-option-copy,
 .reward-option-mark {
   position: relative;
@@ -1201,6 +1278,7 @@ a:focus-visible {
 .reward-option-copy strong {
   display: block;
   font-size: 26px;
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
   letter-spacing: -0.06em;
 }
@@ -1212,6 +1290,19 @@ a:focus-visible {
   font-size: 10px;
 }
 
+.age-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: var(--red-dark);
+  background: var(--red-soft);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
 .reward-option-mark {
   display: grid;
   width: 41px;
@@ -1221,6 +1312,12 @@ a:focus-visible {
   border-radius: 14px;
   color: var(--white);
   background: var(--ink);
+  transition: background 220ms ease, transform 230ms var(--ease);
+}
+
+.reward-option:hover .reward-option-mark {
+  background: var(--red);
+  transform: translateX(3px);
 }
 
 .instruction-heading {
@@ -1673,8 +1770,10 @@ a:focus-visible {
   *:not(.status-pill):not(.status-pill::before):not(.status-pill::after)::before,
   *:not(.status-pill):not(.status-pill::before):not(.status-pill::after)::after {
     scroll-behavior: auto !important;
+    animation-delay: 0ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    transition-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
 
@@ -2028,4 +2127,45 @@ body.modal-open {
     border-radius: 26px;
     padding: 28px 26px 26px;
   }
+}
+
+/* ---------- Вступление «Перед началом» (задание «Отзывы») ---------- */
+.intro-card {
+  border-color: rgba(240, 24, 40, 0.16);
+  background: linear-gradient(150deg, #ffffff 0%, #fff8f8 100%);
+  box-shadow: 0 14px 32px rgba(240, 24, 40, 0.09);
+}
+
+.intro-copy {
+  display: grid;
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.intro-copy p {
+  margin: 0;
+  color: #54494a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.intro-copy .intro-lead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  border-left: 3px solid var(--red);
+  border-radius: 5px 15px 15px 5px;
+  color: var(--red-dark);
+  background: linear-gradient(90deg, #fff0f1 0%, rgba(255, 240, 241, 0.15) 100%);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.intro-copy .intro-lead svg {
+  flex: 0 0 auto;
+  color: var(--red);
 }
