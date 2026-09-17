@@ -1,0 +1,253 @@
+:root {
+  --alfa-red: #ef1b2d;
+  --alfa-red-deep: #b70717;
+  --alfa-pink: #ff6a75;
+  --alfa-ink: #0f0f10;
+}
+
+/* Stronger Alfa visual language: layered red gradients, rings and soft glow. */
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(239, 27, 45, .10), transparent 28%),
+    radial-gradient(circle at 92% 18%, rgba(255, 106, 117, .14), transparent 25%),
+    linear-gradient(180deg, #fff 0%, #fff7f7 100%);
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(239, 27, 45, .11), transparent 28%),
+    radial-gradient(circle at 0% 72%, rgba(255, 106, 117, .08), transparent 24%),
+    #fff;
+}
+
+.app-shell::before,
+.app-shell::after {
+  position: fixed;
+  z-index: -1;
+  width: 210px;
+  height: 210px;
+  border: 1px solid rgba(239, 27, 45, .10);
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.app-shell::before {
+  top: 70px;
+  right: -150px;
+  box-shadow: 0 0 0 22px rgba(239, 27, 45, .025), 0 0 0 48px rgba(239, 27, 45, .018);
+}
+
+.app-shell::after {
+  bottom: 120px;
+  left: -165px;
+  transform: scale(.82);
+  box-shadow: 0 0 0 22px rgba(239, 27, 45, .022), 0 0 0 48px rgba(239, 27, 45, .014);
+}
+
+.brand-mark {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 17px !important;
+  background: linear-gradient(145deg, #ff3b49 0%, #ef1b2d 42%, #b70717 100%) !important;
+  box-shadow: 0 14px 30px rgba(239, 27, 45, .30), inset 0 1px 0 rgba(255,255,255,.3) !important;
+  font-size: 35px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.12em !important;
+}
+
+.header-brand .brand-mark {
+  width: 47px !important;
+  height: 47px !important;
+  border-radius: 14px !important;
+  font-size: 30px !important;
+}
+
+.brand-service {
+  color: #000 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.045em !important;
+}
+
+.header-brand,
+.brand-lockup {
+  gap: 13px;
+}
+
+.status-pill {
+  position: relative;
+  overflow: visible !important;
+  min-height: 34px;
+  padding: 8px 13px 8px 27px !important;
+  border: 1px solid rgba(239, 27, 45, .16) !important;
+  border-radius: 999px !important;
+  color: #b70717 !important;
+  background: rgba(255,255,255,.88) !important;
+  box-shadow: 0 8px 22px rgba(239, 27, 45, .10);
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.status-pill::before {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16c47f;
+  box-shadow: 0 0 0 0 rgba(22,196,127,.55);
+  content: '';
+  transform: translateY(-50%);
+  animation: online-pulse 1.35s ease-out infinite;
+}
+
+.status-pill::after {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(22,196,127,.30);
+  border-radius: 50%;
+  content: '';
+  transform: translateY(-50%);
+  animation: online-ring 1.35s ease-out infinite;
+}
+
+@keyframes online-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22,196,127,.55); opacity: 1; }
+  55% { box-shadow: 0 0 0 7px rgba(22,196,127,0); opacity: .72; }
+}
+
+@keyframes online-ring {
+  0% { opacity: .85; transform: translateY(-50%) scale(.72); }
+  70%, 100% { opacity: 0; transform: translateY(-50%) scale(1.55); }
+}
+
+.balance-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 18%, rgba(255,255,255,.32), transparent 23%),
+    radial-gradient(circle at 18% 110%, rgba(255,255,255,.14), transparent 28%),
+    linear-gradient(135deg, #c5081a 0%, #ef1b2d 45%, #ff5561 100%) !important;
+  box-shadow: 0 22px 42px rgba(239,27,45,.24) !important;
+}
+
+.balance-card::before {
+  position: absolute;
+  top: -75px;
+  right: -75px;
+  width: 190px;
+  height: 190px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgba(255,255,255,.06), 0 0 0 48px rgba(255,255,255,.035);
+  content: '';
+}
+
+.task-card,
+.reward-option,
+.info-card,
+.profile-card,
+.locked-card {
+  transition: transform 220ms cubic-bezier(.22,1,.36,1), box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.task-card:hover,
+.reward-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px rgba(239,27,45,.12);
+}
+
+.task-icon {
+  border-color: rgba(239,27,45,.15) !important;
+  color: var(--alfa-red) !important;
+  background: linear-gradient(145deg, #fff 0%, #fff0f1 100%) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 8px 18px rgba(239,27,45,.08);
+}
+
+/* Reviews use a more appropriate feedback/chat symbol. */
+.reviews-feedback-icon {
+  display: inline-grid;
+  place-items: center;
+}
+
+.button {
+  min-height: 60px !important;
+  padding: 17px 22px !important;
+  border-radius: 18px !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+.button-ghost {
+  min-height: 50px !important;
+  font-size: 14px !important;
+}
+
+.view-heading {
+  font-size: clamp(38px, 10.5vw, 62px) !important;
+  line-height: .96 !important;
+}
+
+.section-heading h2,
+.account-section-heading h2 {
+  font-size: 21px !important;
+}
+
+.task-card-title {
+  font-size: 21px !important;
+}
+
+.task-card-description,
+.info-card p,
+.view-subheading,
+.detail-hero p {
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.info-card {
+  border-color: rgba(239,27,45,.13) !important;
+  background: linear-gradient(145deg, #fff 0%, #fff7f7 100%) !important;
+  box-shadow: 0 14px 30px rgba(239,27,45,.08) !important;
+}
+
+.info-note {
+  border-color: rgba(239,27,45,.12) !important;
+  background: #fff0f1 !important;
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    border-top-width: 5px;
+  }
+
+  .app-header {
+    padding: 18px 16px 12px !important;
+  }
+
+  .header-brand .brand-mark {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 28px !important;
+  }
+
+  .brand-service {
+    font-size: 19px !important;
+  }
+
+  .button {
+    min-height: 62px !important;
+    font-size: 16px !important;
+  }
+
+  .task-card-description {
+    font-size: 14px !important;
+  }
+}
