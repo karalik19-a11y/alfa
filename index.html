@@ -6,14 +6,57 @@
     <meta name="theme-color" content="#ef1d28" />
     <meta name="description" content="tasks — задания с наградой в Telegram Mini App." />
     <title>tasks</title>
-    <link rel="preload" href="/styles.css?v=20260917-8" as="style" />
-    <link rel="stylesheet" href="/styles.css?v=20260917-8" />
+    <link rel="preload" href="/styles.css?v=20260917-9" as="style" />
+    <link rel="stylesheet" href="/styles.css?v=20260917-9" />
     <script src="https://telegram.org/js/telegram-web-app.js" async></script>
+    <script>
+      // Страховка от белого экрана: если app.js не загрузился или упал при разборе,
+      // показываем понятное сообщение вместо пустой страницы.
+      (function () {
+        var bootError = '';
+        function remember(message) {
+          if (!bootError) bootError = String(message || 'unknown error');
+        }
+        // capture-фаза ловит ошибки ресурсов и ошибки разбора <script>
+        window.addEventListener('error', function (event) {
+          var target = event && event.target;
+          if (target && (target.src || target.href)) remember('Не удалось загрузить ' + (target.src || target.href));
+          else remember((event && event.message) || 'script error');
+        }, true);
+        window.addEventListener('unhandledrejection', function (event) {
+          remember((event && event.reason) || 'unhandled rejection');
+        });
+        function fallback() {
+          var app = document.getElementById('app');
+          if (!app || app.innerHTML.trim().length > 0) return;
+          app.innerHTML =
+            '<div class="gate-screen"><main class="gate-main">' +
+            '<div class="gate-kicker">Страница не открылась</div>' +
+            '<h1 class="gate-title">Приложение<br /><em>не загрузилось</em></h1>' +
+            '<p class="gate-description">Проверь интернет-соединение и обнови страницу. Если ошибка повторится, открой Mini App заново из Telegram.</p>' +
+            (bootError ? '<p class="gate-description">Причина: ' + bootError.replace(/[<>&]/g, '') + '</p>' : '') +
+            '<button class="button button-dark button-full" type="button" onclick="location.reload()">Обновить страницу</button>' +
+            '</main></div>';
+        }
+        window.addEventListener('load', function () {
+          window.setTimeout(fallback, 1200);
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="/app.js?v=20260917-8"></script>
-    <script src="/profile-fix.js?v=20260917-8" defer></script>
+    <noscript>
+      <div class="gate-screen">
+        <main class="gate-main">
+          <div class="gate-kicker">Нужен JavaScript</div>
+          <h1 class="gate-title">Включи<br /><em>JavaScript</em></h1>
+          <p class="gate-description">Это приложение работает на JavaScript. Включи его в настройках браузера или открой задание из Telegram.</p>
+        </main>
+      </div>
+    </noscript>
+    <script type="module" src="/app.js?v=20260917-9"></script>
+    <script src="/profile-fix.js?v=20260917-9" defer></script>
   </body>
 </html>

@@ -9,6 +9,10 @@ services:
       - path: /*
         name: X-Content-Type-Options
         value: nosniff
+      # index.html всегда свежий: иначе пользователи останутся на старых ссылках ?v=…
+      - path: /
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
       - path: /index.html
         name: Cache-Control
         value: no-cache, no-store, must-revalidate

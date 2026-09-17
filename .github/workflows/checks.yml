@@ -1,0 +1,36 @@
+name: checks
+
+# Защита от «сайт не открывается»: каждый пуш прогоняет синтаксис всех JS-файлов,
+# кликабельный смоук-тест интерфейса и HTTP-проверку сервера.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Синтаксис всех JS-файлов
+        run: npm run check:syntax
+
+      - name: render.yaml валиден
+        run: python3 -c "import yaml,sys; yaml.safe_load(open('render.yaml')); print('render.yaml ok')"
+
+      - name: jsdom (только для тестов)
+        run: npm install --no-save --no-audit --no-fund jsdom@25
+
+      - name: Смоук-тест интерфейса (все экраны)
+        run: npm test
+
+      - name: HTTP-смоук (server.js)
+        run: npm run test:http
