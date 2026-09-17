@@ -50,16 +50,19 @@ const iconPaths = {
 
 function icon(name, size = 20, className = '') { return `<svg class="${className}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name] || ''}</svg>`; }
 function escapeHTML(value = '') { return String(value).replace(/[&<>'"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;' })[c]); }
-function getTelegramUser() { const fallback={firstName:'Гость',lastName:'',username:'telegram_user',photoUrl:'',isTelegram:false}; try { const telegram=window.Telegram?.WebApp; telegram?.ready?.(); telegram?.expand?.(); const u=telegram?.initDataUnsafe?.user; if(!u)return fallback; return {firstName:u.first_name||'Пользователь',lastName:u.last_name||'',username:u.username||'',photoUrl:u.photo_url||'',isTelegram:true}; } catch { return fallback; } }
+function getTelegramUser() { const fallback={firstName:'Гость',lastName:'',username:'telegram_user',photoUrl:'',isTelegram:false}; try { const u=window.Telegram?.WebApp?.initDataUnsafe?.user; if(!u)return fallback; return {id:u.id||'',firstName:u.first_name||'Пользователь',lastName:u.last_name||'',username:u.username||'',photoUrl:u.photo_url||'',isTelegram:true}; } catch { return fallback; } }
+function initTelegramChrome(){try{const webApp=window.Telegram?.WebApp;if(!webApp)return;try{webApp.ready();}catch{}try{webApp.expand();}catch{}try{if(typeof webApp.disableVerticalSwipes==='function')webApp.disableVerticalSwipes();}catch{}try{if(typeof webApp.setHeaderColor==='function')webApp.setHeaderColor('#fff5f5');}catch{}try{if(typeof webApp.setBackgroundColor==='function')webApp.setBackgroundColor('#fff5f5');}catch{}}catch{}}
+function usersEqual(a,b){if(!a||!b)return false;return String(a.id||'')===String(b.id||'')&&String(a.firstName||'')===String(b.firstName||'')&&String(a.lastName||'')===String(b.lastName||'')&&String(a.username||'')===String(b.username||'')&&String(a.photoUrl||'')===String(b.photoUrl||'')&&Boolean(a.isTelegram)===Boolean(b.isTelegram);}
+function refreshTelegramUser(){initTelegramChrome();const next=getTelegramUser();if(usersEqual(next,user))return false;user=next;return true;}
 function getDisplayName(user){return [user.firstName,user.lastName].filter(Boolean).join(' ')||'Пользователь';}
-function getUsername(user){return user.username?`@${user.username.replace(/^@/,'')}`:'@username';}
+function getUsername(user){if(user.username)return `@${String(user.username).replace(/^@/,'')}`;if(user.isTelegram&&user.id)return `ID ${user.id}`;return '@username';}
 function getInitials(user){return ([user.firstName,user.lastName].filter(Boolean).map(p=>p.trim().charAt(0)).join('')||'A').slice(0,2).toUpperCase();}
 function safePhotoUrl(url){try{const p=new URL(url);return ['http:','https:'].includes(p.protocol)?escapeHTML(p.href):'';}catch{return '';}}
 function avatarMarkup(user,size=''){const photo=safePhotoUrl(user.photoUrl);const cls=`avatar${size?` ${size}`:''}`;return `<span class="${cls}">${photo?`<img src="${photo}" alt="" />`:escapeHTML(getInitials(user))}</span>`;}
 function loadActiveTasks(){try{const s=JSON.parse(localStorage.getItem(ACTIVE_TASKS_KEY)||'[]');return Array.isArray(s)?s:[];}catch{return [];}}
 function saveActiveTasks(tasks){try{localStorage.setItem(ACTIVE_TASKS_KEY,JSON.stringify(tasks));}catch{}}
 function formatDate(timestamp){try{return new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'short'}).format(new Date(timestamp));}catch{return 'сегодня';}}
-const user=getTelegramUser();
+let user=getTelegramUser();
 function readAccessFlag(){try{return localStorage.getItem(ACCESS_KEY)==='true';}catch{return false;}}
 const state={mode:readAccessFlag()?'app':'gate',view:'tasks',selectedReward:null,activeTasks:loadActiveTasks(),history:[],modal:null,dir:'none'};
 const app=document.querySelector('#app'); const toast=document.querySelector('#toast'); let toastTimer;
@@ -97,10 +100,13 @@ function renderBottomNav(){const onAccount=state.view==='account',tasksCount=sta
 function renderApp(){let content=renderTaskHome();if(state.view==='account')content=renderAccount();if(state.view==='intro')content=renderIntro();if(state.view==='rewards')content=renderRewards();if(state.view==='ageGate')content=renderAgeGate();if(state.view==='instructions')content=renderInstructions();return `<div class="app-shell">${renderAppHeader()}<main class="app-main">${content}</main>${renderBottomNav()}</div>`;}
 /* Модалка живёт отдельно от оболочки: открытие/закрытие окна не перерисовывает
    экран под ней — контент не «мигает» и не проигрывает анимацию заново. */
-function setModalBodyClass(){try{document.body.classList.toggle('modal-open',state.mode==='app'&&!!state.modal);}catch{}}
+function setModalBodyClass(){try{document.body.classList.toggle('modal-open',state.mode==='app'&&!!state.modal);}catch{}syncBackButton();}
+let backButtonWired=false;
+function syncBackButton(){try{const webApp=window.Telegram?.WebApp;const backButton=webApp?.BackButton;if(!webApp||!backButton||typeof backButton.show!=='function')return;if(!backButtonWired){backButtonWired=true;const onTelegramBack=function(){try{if(state.modal)closeModal();else back();}catch{}};try{if(typeof webApp.onEvent==='function')webApp.onEvent('backButtonClicked',onTelegramBack);else if(typeof backButton.onClick==='function')backButton.onClick(onTelegramBack);}catch{try{backButton.onClick(onTelegramBack);}catch{}}}const visible=state.mode==='app'&&(!!state.modal||state.history.length>0);try{if(visible)backButton.show();else backButton.hide();}catch{}}catch{}}
 function syncModal(){const html=state.mode==='app'?renderModal():'';let host=document.getElementById('modal-root');if(html){if(!host){host=document.createElement('div');host.id='modal-root';document.body.appendChild(host);}host.innerHTML=html;}else if(host){host.remove();}}
-function render(){setModalBodyClass();if(state.mode==='gate'){app.innerHTML=renderGate();syncModal();state.dir='none';return;}if(state.mode==='rejected'){app.innerHTML=renderRejected();syncModal();state.dir='none';return;}app.innerHTML=renderApp();syncModal();state.dir='none';}
+function renderUnsafe(){setModalBodyClass();if(state.mode==='gate'){app.innerHTML=renderGate();syncModal();state.dir='none';return;}if(state.mode==='rejected'){app.innerHTML=renderRejected();syncModal();state.dir='none';return;}app.innerHTML=renderApp();syncModal();state.dir='none';}
 function renderModalOnly(){setModalBodyClass();syncModal();}
+function render(){try{renderUnsafe();}catch(error){renderFatal(error);}}
 function closeModal(){if(!state.modal)return;const overlay=document.querySelector('#modal-root .modal-overlay');if(overlay&&!overlay.classList.contains('is-closing')&&motionOK()){state.modal.closing=true;overlay.classList.add('is-closing');window.setTimeout(()=>{if(state.modal&&state.modal.closing){state.modal=null;renderModalOnly();}},260);}else{state.modal=null;renderModalOnly();}}
 function go(view){if(state.view===view)return;state.history.push(state.view);state.view=view;state.dir='forward';scrollTopInstant();render();}
 function back(){const previous=state.history.pop();state.view=previous||'tasks';state.dir=previous?'back':'none';scrollTopInstant();render();}
@@ -145,4 +151,17 @@ function endSheetDrag(){if(!sheetDrag)return;const sheet=sheetDrag.sheet,dy=shee
 document.addEventListener('pointerup',endSheetDrag);
 document.addEventListener('pointercancel',endSheetDrag);
 function renderFatal(error){const message=error&&(error.message||String(error))||'Неизвестная ошибка';const target=app||document.body;target.innerHTML=`<div class="gate-screen"><main class="gate-main"><div class="gate-kicker">Что-то пошло не так</div><h1 class="gate-title">Приложение<br /><em>не загрузилось</em></h1><p class="gate-description">Проверь интернет-соединение и обнови страницу. Если ошибка повторится, открой Mini App заново из Telegram.</p><p class="gate-description">Код ошибки: ${escapeHTML(message)}</p><button class="button button-dark button-full" type="button" onclick="location.reload()">Обновить страницу</button></main></div>`;}
+/* Профиль Telegram может появиться позже старта app.js (скрипт telegram-web-app.js
+   грузится по сети, initData иногда приезжает с задержкой). Поэтому аккаунт не
+   читается один раз, а синхронизируется: вотчер замечает появление профиля и
+   перерисовывает шапку и кабинет — аккаунт пользователя виден всегда. */
+function rawPhotoUrl(url){try{const parsed=new URL(String(url||''));return parsed.protocol==='http:'||parsed.protocol==='https:'?parsed.href:'';}catch{return '';}}
+function syncAvatarNode(selector){try{const el=document.querySelector(selector);if(!el)return;const photo=rawPhotoUrl(user.photoUrl);const img=el.querySelector('img');if(photo){if(img&&img.getAttribute('src')===photo)return;el.innerHTML=`<img src="${escapeHTML(photo)}" alt="" />`;}else{const want=getInitials(user);if(!img&&el.textContent===want)return;el.textContent=want;}}catch{}}
+function patchUserNodes(){try{const displayName=getDisplayName(user);const username=getUsername(user);const headerName=document.querySelector('.header-profile-name');if(headerName&&headerName.textContent!==displayName)headerName.textContent=displayName;const profileName=document.querySelector('.profile-card .profile-card-copy h2');if(profileName&&profileName.textContent!==displayName)profileName.textContent=displayName;const profileHandle=document.querySelector('.profile-card .profile-card-copy p');if(profileHandle&&profileHandle.textContent!==username)profileHandle.textContent=username;const profileLabel=document.querySelector('.profile-card .profile-label');const wantLabel=user.isTelegram?'Профиль Telegram':'Демо-профиль';if(profileLabel&&profileLabel.textContent!==wantLabel)profileLabel.textContent=wantLabel;syncAvatarNode('.header-profile-button .avatar');syncAvatarNode('.profile-card .avatar');}catch{}}
+function syncTelegramUser(){if(!refreshTelegramUser())return;if(state.modal){patchUserNodes();}else{state.dir='none';render();}}
+initTelegramChrome();
+try{window.__alfaTasks={getUser:function(){return user;},refresh:function(){try{syncTelegramUser();}catch{}}};}
+catch{}
+let telegramWatchCount=0;
+const telegramWatchTimer=window.setInterval(function(){telegramWatchCount+=1;try{syncTelegramUser();}catch{}if((user.isTelegram&&telegramWatchCount>8)||telegramWatchCount>=240)window.clearInterval(telegramWatchTimer);},250);
 try{render();}catch(error){renderFatal(error);}

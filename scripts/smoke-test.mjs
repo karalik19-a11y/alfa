@@ -259,6 +259,53 @@ function boot({ telegram = null, storage = null } = {}) {
   check('H18 после перезапуска статус проверки сохранился', /Отзыв на проверке/.test(restarted.doc.querySelector('.active-task-card')?.textContent || ''));
 }
 
+// ---------- I: Telegram появился ПОЗЖЕ старта (гонка скриптов, медленная сеть) ----------
+// Регрессия: раньше профиль читался один раз при старте, и если скрипт
+// telegram-web-app.js ещё не загрузился — навсегда оставался «Гость».
+{
+  const late = boot(); // старт без Telegram
+  late.click('eligible-no');
+  check('I1 без Telegram показан демо-профиль', late.doc.querySelector('.header-profile-name')?.textContent === 'Гость', late.doc.querySelector('.header-profile-name')?.textContent);
+  check('I2 app.js отдаёт refresh наружу', typeof late.window.__alfaTasks?.refresh === 'function', typeof late.window.__alfaTasks);
+  // Telegram «подгрузился» уже после отрисовки приложения
+  late.window.Telegram = {
+    WebApp: {
+      ready() {},
+      expand() {},
+      initDataUnsafe: {
+        user: { id: 777001, first_name: 'Мария', last_name: 'Сидорова', username: 'maria_s', photo_url: 'https://t.me/i/userpic/320/m.jpg' },
+      },
+    },
+  };
+  await new Promise((r) => setTimeout(r, 900)); // вотчер app.js тикает каждые 250 мс
+  check('I3 аккаунт подтянулся сам: имя в шапке', late.doc.querySelector('.header-profile-name')?.textContent === 'Мария Сидорова', late.doc.querySelector('.header-profile-name')?.textContent);
+  late.click('nav-account');
+  check('I4 имя в карточке профиля', late.doc.querySelector('.profile-card-copy h2')?.textContent === 'Мария Сидорова', late.doc.querySelector('.profile-card-copy h2')?.textContent);
+  check('I5 username в карточке', late.doc.querySelector('.profile-card-copy p')?.textContent === '@maria_s', late.doc.querySelector('.profile-card-copy p')?.textContent);
+  check('I6 аватар из Telegram', late.doc.querySelector('.profile-card .avatar img')?.getAttribute('src') === 'https://t.me/i/userpic/320/m.jpg');
+  late.click('nav-tasks');
+  check('I7 после переходов имя не слетело на демо', late.doc.querySelector('.header-profile-name')?.textContent === 'Мария Сидорова', late.doc.querySelector('.header-profile-name')?.textContent);
+  check('I8 без ошибок при позднем Telegram', late.errors.length === 0, late.errors.join(' | '));
+}
+
+// ---------- J: у пользователя Telegram нет username — показан ID, а не заглушка ----------
+{
+  const j = boot({
+    telegram: {
+      WebApp: {
+        ready() {},
+        expand() {},
+        initDataUnsafe: { user: { id: 555, first_name: 'Пётр', last_name: '', username: '', photo_url: '' } },
+      },
+    },
+  });
+  j.click('eligible-no');
+  j.click('nav-account');
+  check('J1 без username показан ID аккаунта', j.doc.querySelector('.profile-card-copy p')?.textContent === 'ID 555', j.doc.querySelector('.profile-card-copy p')?.textContent);
+  check('J2 инициалы вместо аватара', (j.doc.querySelector('.profile-card .avatar')?.textContent || '').trim() === 'П', j.doc.querySelector('.profile-card .avatar')?.textContent);
+  check('J3 без ошибок', j.errors.length === 0, j.errors.join(' | '));
+}
+
 console.log('\n=== РЕЗУЛЬТАТЫ ===');
 let failed = 0;
 for (const r of results) {
