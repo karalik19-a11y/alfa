@@ -1,58 +1,45 @@
 :root {
   --alfa-red: #ef1b2d;
   --alfa-red-deep: #b70717;
+  --alfa-red-dark: #8f0010;
   --alfa-pink: #ff6a75;
-  --alfa-ink: #0f0f10;
+  --alfa-ink: #0b0b0d;
+  --alfa-gray: #6f6f75;
+  --alfa-bg: #f6f6f4;
 }
 
-/* Stronger Alfa visual language: layered red gradients, rings and soft glow. */
+/* Alfa-inspired visual system: bold red, clean white surfaces, black typography,
+   oversized rounded controls, restrained gradients and soft depth. */
+html,
 body {
-  background:
-    radial-gradient(circle at 8% 8%, rgba(239, 27, 45, .10), transparent 28%),
-    radial-gradient(circle at 92% 18%, rgba(255, 106, 117, .14), transparent 25%),
-    linear-gradient(180deg, #fff 0%, #fff7f7 100%);
+  background: var(--alfa-bg) !important;
+}
+
+body {
+  color: var(--alfa-ink) !important;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
 }
 
 .app-shell {
-  position: relative;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(239, 27, 45, .11), transparent 28%),
-    radial-gradient(circle at 0% 72%, rgba(255, 106, 117, .08), transparent 24%),
-    #fff;
+  background: #fff !important;
+  border-top: 5px solid var(--alfa-red) !important;
+  box-shadow: 0 0 80px rgba(0,0,0,.06);
 }
 
 .app-shell::before,
 .app-shell::after {
-  position: fixed;
-  z-index: -1;
-  width: 210px;
-  height: 210px;
-  border: 1px solid rgba(239, 27, 45, .10);
-  border-radius: 50%;
-  content: '';
-  pointer-events: none;
+  opacity: .65;
 }
 
-.app-shell::before {
-  top: 70px;
-  right: -150px;
-  box-shadow: 0 0 0 22px rgba(239, 27, 45, .025), 0 0 0 48px rgba(239, 27, 45, .018);
-}
-
-.app-shell::after {
-  bottom: 120px;
-  left: -165px;
-  transform: scale(.82);
-  box-shadow: 0 0 0 22px rgba(239, 27, 45, .022), 0 0 0 48px rgba(239, 27, 45, .014);
-}
-
+/* Brand */
 .brand-mark {
   width: 54px !important;
   height: 54px !important;
-  border-radius: 17px !important;
-  background: linear-gradient(145deg, #ff3b49 0%, #ef1b2d 42%, #b70717 100%) !important;
-  box-shadow: 0 14px 30px rgba(239, 27, 45, .30), inset 0 1px 0 rgba(255,255,255,.3) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  color: #fff !important;
+  background: linear-gradient(145deg, #ff3b49 0%, #ef1b2d 46%, #b70717 100%) !important;
+  box-shadow: 0 14px 30px rgba(239,27,45,.28), inset 0 1px 0 rgba(255,255,255,.28) !important;
   font-size: 35px !important;
   font-weight: 900 !important;
   letter-spacing: -.12em !important;
@@ -61,7 +48,7 @@ body {
 .header-brand .brand-mark {
   width: 47px !important;
   height: 47px !important;
-  border-radius: 14px !important;
+  border-radius: 15px !important;
   font-size: 30px !important;
 }
 
@@ -69,24 +56,31 @@ body {
   color: #000 !important;
   font-size: 20px !important;
   font-weight: 900 !important;
-  letter-spacing: -.045em !important;
+  letter-spacing: -.05em !important;
+}
+
+.brand-name { color: #000 !important; }
+
+/* Header */
+.app-header {
+  min-height: 76px;
+  padding: 18px 20px 12px !important;
+  background: rgba(255,255,255,.96);
 }
 
 .header-brand,
 .brand-lockup {
-  gap: 13px;
+  gap: 12px !important;
 }
 
 .status-pill {
-  position: relative;
-  overflow: visible !important;
   min-height: 34px;
   padding: 8px 13px 8px 27px !important;
-  border: 1px solid rgba(239, 27, 45, .16) !important;
+  border: 1px solid rgba(239,27,45,.15) !important;
   border-radius: 999px !important;
-  color: #b70717 !important;
-  background: rgba(255,255,255,.88) !important;
-  box-shadow: 0 8px 22px rgba(239, 27, 45, .10);
+  color: var(--alfa-red-deep) !important;
+  background: #fff !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,.06) !important;
   font-size: 12px !important;
   font-weight: 900 !important;
 }
@@ -111,7 +105,7 @@ body {
   left: 8px;
   width: 14px;
   height: 14px;
-  border: 1px solid rgba(22,196,127,.30);
+  border: 1px solid rgba(22,196,127,.3);
   border-radius: 50%;
   content: '';
   transform: translateY(-50%);
@@ -119,135 +113,268 @@ body {
 }
 
 @keyframes online-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(22,196,127,.55); opacity: 1; }
+  0%,100% { box-shadow: 0 0 0 0 rgba(22,196,127,.5); opacity: 1; }
   55% { box-shadow: 0 0 0 7px rgba(22,196,127,0); opacity: .72; }
 }
 
 @keyframes online-ring {
   0% { opacity: .85; transform: translateY(-50%) scale(.72); }
-  70%, 100% { opacity: 0; transform: translateY(-50%) scale(1.55); }
+  70%,100% { opacity: 0; transform: translateY(-50%) scale(1.55); }
 }
 
+/* Main page */
+.view,
+.detail-view,
+.account-view {
+  background: #fff !important;
+}
+
+.view-heading {
+  color: #080809 !important;
+  font-size: clamp(40px, 10.8vw, 64px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.075em !important;
+  line-height: .94 !important;
+}
+
+.view-heading em,
+.detail-hero h1 em {
+  color: var(--alfa-red) !important;
+  font-style: normal;
+}
+
+.view-subheading,
+.detail-hero p,
+.task-card-description,
+.info-card p {
+  color: #65656b !important;
+  font-size: 15px !important;
+  line-height: 1.62 !important;
+}
+
+.section-heading h2,
+.account-section-heading h2 {
+  color: #09090a !important;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.045em !important;
+}
+
+/* Hero / balance: signature red Alfa block */
 .balance-card {
   position: relative;
   overflow: hidden;
+  border: 0 !important;
   background:
-    radial-gradient(circle at 85% 18%, rgba(255,255,255,.32), transparent 23%),
-    radial-gradient(circle at 18% 110%, rgba(255,255,255,.14), transparent 28%),
-    linear-gradient(135deg, #c5081a 0%, #ef1b2d 45%, #ff5561 100%) !important;
-  box-shadow: 0 22px 42px rgba(239,27,45,.24) !important;
+    radial-gradient(circle at 90% 12%, rgba(255,255,255,.34), transparent 24%),
+    radial-gradient(circle at 8% 105%, rgba(255,255,255,.13), transparent 30%),
+    linear-gradient(135deg, #a90013 0%, #df1024 42%, #f72b3b 72%, #ff5b67 100%) !important;
+  box-shadow: 0 24px 48px rgba(202,15,33,.23) !important;
 }
 
 .balance-card::before {
   position: absolute;
-  top: -75px;
-  right: -75px;
-  width: 190px;
-  height: 190px;
-  border: 1px solid rgba(255,255,255,.28);
+  top: -78px;
+  right: -78px;
+  width: 205px;
+  height: 205px;
+  border: 1px solid rgba(255,255,255,.27);
   border-radius: 50%;
   box-shadow: 0 0 0 22px rgba(255,255,255,.06), 0 0 0 48px rgba(255,255,255,.035);
   content: '';
+  pointer-events: none;
 }
 
+/* Cards: less generic SaaS, more Alfa mobile banking */
 .task-card,
 .reward-option,
 .info-card,
 .profile-card,
 .locked-card {
+  border: 1px solid #e9e9e7 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.055) !important;
   transition: transform 220ms cubic-bezier(.22,1,.36,1), box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .task-card:hover,
 .reward-option:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 34px rgba(239,27,45,.12);
+  border-color: rgba(239,27,45,.18) !important;
+  box-shadow: 0 18px 36px rgba(0,0,0,.09) !important;
 }
 
 .task-icon {
-  border-color: rgba(239,27,45,.15) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
   color: var(--alfa-red) !important;
-  background: linear-gradient(145deg, #fff 0%, #fff0f1 100%) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 8px 18px rgba(239,27,45,.08);
+  background: linear-gradient(145deg, #fff5f6 0%, #ffe7e9 100%) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 7px 18px rgba(239,27,45,.08) !important;
 }
 
-/* Reviews use a more appropriate feedback/chat symbol. */
-.reviews-feedback-icon {
-  display: inline-grid;
-  place-items: center;
+.task-card-title {
+  color: #0a0a0b !important;
+  font-size: 21px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.045em !important;
 }
 
+/* Buttons: unmistakable Alfa red primary action */
 .button {
   min-height: 60px !important;
   padding: 17px 22px !important;
   border-radius: 18px !important;
   font-size: 16px !important;
   font-weight: 900 !important;
+  letter-spacing: -.02em;
 }
 
+.button:not(.button-outline):not(.button-ghost):not(.button-dark) {
+  background: linear-gradient(135deg, #f52234 0%, #d90e20 100%) !important;
+  box-shadow: 0 13px 26px rgba(239,27,45,.22) !important;
+}
+
+.button:not(.button-outline):not(.button-ghost):not(.button-dark):hover {
+  background: linear-gradient(135deg, #ff3041 0%, #c90a1b 100%) !important;
+  transform: translateY(-2px);
+}
+
+.button-dark {
+  background: #09090a !important;
+  box-shadow: 0 13px 26px rgba(0,0,0,.15) !important;
+}
+
+.button-outline,
 .button-ghost {
-  min-height: 50px !important;
-  font-size: 14px !important;
+  color: #0b0b0d !important;
+  border-color: #e4e4e2 !important;
+  background: #fff !important;
+  box-shadow: none !important;
 }
 
-.view-heading {
-  font-size: clamp(38px, 10.5vw, 62px) !important;
-  line-height: .96 !important;
+.button-outline:hover,
+.button-ghost:hover {
+  color: var(--alfa-red) !important;
+  border-color: rgba(239,27,45,.3) !important;
+  background: #fff7f7 !important;
 }
 
-.section-heading h2,
-.account-section-heading h2 {
-  font-size: 21px !important;
+/* Detail screen */
+.detail-topbar {
+  border-bottom: 1px solid #ededeb !important;
+  background: rgba(255,255,255,.97) !important;
 }
 
-.task-card-title {
-  font-size: 21px !important;
+.detail-hero {
+  position: relative;
 }
 
-.task-card-description,
-.info-card p,
-.view-subheading,
-.detail-hero p {
-  font-size: 15px !important;
-  line-height: 1.65 !important;
+.detail-hero::before {
+  opacity: .7;
 }
 
 .info-card {
-  border-color: rgba(239,27,45,.13) !important;
-  background: linear-gradient(145deg, #fff 0%, #fff7f7 100%) !important;
-  box-shadow: 0 14px 30px rgba(239,27,45,.08) !important;
+  border-color: #ecebea !important;
+  background: linear-gradient(145deg, #fff 0%, #fafafa 100%) !important;
 }
 
 .info-note {
-  border-color: rgba(239,27,45,.12) !important;
+  border: 1px solid rgba(239,27,45,.12) !important;
+  border-radius: 18px !important;
   background: #fff0f1 !important;
 }
 
+/* Chips / labels */
+.eyebrow,
+.reward-chip,
+.coming-soon,
+.mini-pill {
+  color: var(--alfa-red-deep) !important;
+  border-color: rgba(239,27,45,.13) !important;
+  background: #fff2f3 !important;
+  font-weight: 900 !important;
+}
+
+/* Mobile-first hardening: nothing is allowed to overlap. */
+*,
+*::before,
+*::after {
+  max-width: 100%;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+button,
+a,
+.status-pill,
+.brand-lockup,
+.header-brand,
+.task-card,
+.reward-option {
+  min-width: 0;
+}
+
 @media (max-width: 600px) {
-  .app-shell {
-    border-top-width: 5px;
-  }
-
   .app-header {
-    padding: 18px 16px 12px !important;
+    gap: 10px;
+    padding: 16px 16px 11px !important;
   }
 
-  .header-brand .brand-mark {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 28px !important;
+  .header-brand,
+  .brand-lockup {
+    min-width: 0;
   }
 
   .brand-service {
     font-size: 19px !important;
   }
 
+  .header-brand .brand-mark {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px;
+    font-size: 28px !important;
+  }
+
+  .status-pill {
+    flex: 0 1 auto;
+    max-width: 48vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .button {
     min-height: 62px !important;
+    width: 100%;
     font-size: 16px !important;
   }
 
-  .task-card-description {
-    font-size: 14px !important;
+  .task-card,
+  .reward-option,
+  .info-card,
+  .profile-card,
+  .locked-card {
+    border-radius: 22px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
+  .brand-service {
+    font-size: 17px !important;
+  }
+
+  .status-pill {
+    max-width: 42vw;
+    font-size: 11px !important;
   }
 }
