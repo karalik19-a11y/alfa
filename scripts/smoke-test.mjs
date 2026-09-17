@@ -259,6 +259,37 @@ function boot({ telegram = null, storage = null } = {}) {
   check('H18 после перезапуска статус проверки сохранился', /Отзыв на проверке/.test(restarted.doc.querySelector('.active-task-card')?.textContent || ''));
 }
 
+// ---------- I: правовая информация (полупрозрачная кнопка внизу + документ в шторке) ----------
+{
+  const { doc, click, errors, window } = boot();
+  const gateTrigger = doc.querySelector('.gate-screen [data-action="open-legal"]');
+  check('I1 на гейте есть кнопка правовой информации', !!gateTrigger && gateTrigger.classList.contains('legal-trigger'));
+
+  click('open-legal');
+  const legal = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('I2 документ открывается в шторке даже на гейте', !!doc.querySelector('.modal-sheet .legal-doc') && /Правовая информация/.test(legal));
+  check('I3 зафиксировано «не официальный сайт» АО «Альфа-Банк»', /не является официальным сайтом/i.test(legal) && /не одобрял, не спонсирует и не администрирует/i.test(legal));
+  check('I4 товарные знаки: только номинативное использование', /номинативн/i.test(legal) && /1484 ГК РФ/.test(legal) && /правообладател/i.test(legal));
+  check('I5 раскрыты партнёрские (реферальные) ссылки', /партнёрск/i.test(legal) && /реферальн/i.test(legal) && /может получать/i.test(legal));
+  check('I6 награда — добровольная выплата администратора, не банка', /добровольным стимулирующим вознаграждением/i.test(legal) && /не является платежом, премией, кешбэком/i.test(legal));
+  check('I7 не финансовые услуги и не оферта', /не оказывает банковских, финансовых/i.test(legal) && /не является публичной офертой/i.test(legal) && /437 ГК РФ/.test(legal));
+  check('I8 персональные данные: банковские не собираются', /не запрашивает и не обрабатывает банковские/i.test(legal) && /152-ФЗ/.test(legal));
+  check('I9 «как есть» и возрастные ограничения', /как есть/i.test(legal) && /18 лет и старше/.test(legal));
+  check('I10 Telegram не причастен, претензионный порядок', /не спонсируется, не поддерживается и не администрируется Telegram/i.test(legal) && /30 \(тридцати\) календарных дней/.test(legal));
+  check('I11 есть редакция и краткая выжимка', /Редакция от 17 сентября 2026 г\./.test(legal) && /Кратко/.test(legal));
+
+  doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  check('I12 шторка закрывается по Escape', !doc.querySelector('.modal-overlay'));
+
+  click('eligible-no');
+  check('I13 кнопка есть и внутри приложения (над нижней навигацией)', !!doc.querySelector('.app-main [data-action="open-legal"]'));
+  click('open-legal');
+  check('I14 документ открывается и в приложении', !!doc.querySelector('.modal-sheet .legal-doc'));
+  click('close-modal');
+  check('I15 шторка закрывается крестиком', !doc.querySelector('.modal-overlay'));
+  check('I16 без ошибок за правовой сценарий', errors.length === 0, errors.join(' | '));
+}
+
 console.log('\n=== РЕЗУЛЬТАТЫ ===');
 let failed = 0;
 for (const r of results) {

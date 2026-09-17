@@ -2486,3 +2486,95 @@ body {
 .age-gate-card .gate-actions {
   margin-top: 20px;
 }
+
+/* ---------- Правовая информация: небольшая полупрозрачная кнопка внизу + документ в шторке ---------- */
+.legal-footer {
+  display: flex;
+  justify-content: center;
+  margin: 34px 0 0;
+}
+
+.gate-bottom {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+}
+
+.gate-bottom .gate-footer {
+  justify-content: center;
+  text-align: center;
+}
+
+/* Триггер нарочно сдержанный: мелкий полупрозрачный текст, не спорит с воронкой */
+.legal-trigger {
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #a18c8c;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  opacity: 0.48;
+  transition: opacity 200ms ease, color 200ms ease, background 200ms ease;
+}
+
+.legal-trigger:hover,
+.legal-trigger:focus-visible {
+  color: var(--red);
+  background: rgba(240, 24, 40, 0.06);
+  opacity: 0.96;
+}
+
+/* Документ внутри нижней шторки: компактная, но читаемая типографика.
+   Скролл обеспечивает сама шторка (.modal-sheet: max-height + overflow-y). */
+.legal-doc {
+  margin-top: 13px;
+  text-align: left;
+}
+
+.legal-summary {
+  padding: 12px 14px;
+  border: 1px solid rgba(240, 24, 40, 0.12);
+  border-radius: 14px;
+  color: #54494a;
+  background: var(--red-pale);
+  font-size: 12px;
+  line-height: 1.62;
+}
+
+.legal-summary p {
+  margin: 0;
+}
+
+.legal-doc h3 {
+  margin: 17px 0 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.legal-doc p {
+  margin: 7px 0 0;
+  color: #54494a;
+  font-size: 11.5px;
+  line-height: 1.66;
+}
+
+.legal-doc p > strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.legal-doc .legal-updated {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  color: #a18c8c;
+  font-size: 10px;
+}
