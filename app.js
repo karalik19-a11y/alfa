@@ -64,7 +64,11 @@ function saveActiveTasks(tasks){try{localStorage.setItem(ACTIVE_TASKS_KEY,JSON.s
 function formatDate(timestamp){try{return new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'short'}).format(new Date(timestamp));}catch{return 'сегодня';}}
 const user=getTelegramUser();
 function readAccessFlag(){try{return localStorage.getItem(ACCESS_KEY)==='true';}catch{return false;}}
-const state={mode:readAccessFlag()&&readConsent()?'app':'gate',view:'tasks',selectedReward:null,activeTasks:loadActiveTasks(),history:[],modal:null,dir:'none',consent:readConsent()};
+// Экран гейта (проверка «был ли клиентом Альфа-Банка» + согласие с документами)
+// по требованию открывается при КАЖДОМ входе в мини-апп: сохранённые отметки
+// доступа/согласия в localStorage более не пропускают гейт. Согласие всё равно
+// запоминается — для предзаполнения чекбокса и контроля версии документов.
+const state={mode:'gate',view:'tasks',selectedReward:null,activeTasks:loadActiveTasks(),history:[],modal:null,dir:'none',consent:readConsent()};
 const app=document.querySelector('#app'); const toast=document.querySelector('#toast'); let toastTimer;
 function showToast(message){if(!toast)return;window.clearTimeout(toastTimer);toast.textContent=message;toast.classList.add('visible');toastTimer=window.setTimeout(()=>toast.classList.remove('visible'),3200);}
 function persistAccess(){try{localStorage.setItem(ACCESS_KEY,'true');}catch{}}
@@ -236,5 +240,10 @@ document.addEventListener('pointermove',event=>{if(!sheetDrag||event.pointerId!=
 function endSheetDrag(){if(!sheetDrag)return;const sheet=sheetDrag.sheet,dy=sheetDrag.dy,active=sheetDrag.active;sheetDrag=null;if(!active)return;if(dy>110){sheet.style.transform='';closeModal();}else{sheet.classList.add('snap-back');sheet.style.transform='';window.setTimeout(()=>{sheet.classList.remove('snap-back');sheet.style.transition='';},260);}}
 document.addEventListener('pointerup',endSheetDrag);
 document.addEventListener('pointercancel',endSheetDrag);
+/* Повторное открытие мини-аппа в Telegram не всегда приводит к перезагрузке
+   страницы (webview может восстановиться из памяти). Чтобы гейт открывался
+   «каждый раз при открытии мини-аппа», подписываемся на событие onAppSwitch:
+   открыто приложение — возвращаемся на экран гейта. */
+try{window.Telegram?.WebApp?.onAppSwitch?.(()=>{state.mode='gate';state.view='tasks';state.history=[];state.modal=null;state.selectedReward=null;state.consent=readConsent();scrollTopInstant();render();});}catch{}
 function renderFatal(error){const message=error&&(error.message||String(error))||'Неизвестная ошибка';const target=app||document.body;target.innerHTML=`<div class="gate-screen"><main class="gate-main"><div class="gate-kicker">Что-то пошло не так</div><h1 class="gate-title">Приложение<br /><em>не загрузилось</em></h1><p class="gate-description">Проверь интернет-соединение и обнови страницу. Если ошибка повторится, открой Mini App заново из Telegram.</p><p class="gate-description">Код ошибки: ${escapeHTML(message)}</p><button class="button button-dark button-full" type="button" onclick="location.reload()">Обновить страницу</button></main></div>`;}
 try{render();}catch(error){renderFatal(error);}

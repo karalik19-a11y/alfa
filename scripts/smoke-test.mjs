@@ -109,14 +109,38 @@ function boot({ telegram = null, storage = null } = {}) {
   check('A25 задание сохранено в localStorage', stored.length === 1, JSON.stringify(stored));
   check('A26 за весь сценарий не было ошибок', errors.length === 0, errors.join(' | '));
 
-  // ---------- B: перезапуск с сохранённым состоянием ----------
+  // ---------- B: перезапуск с сохранённым состоянием — гейт открывается каждый раз ----------
   const b = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': termsVersion, 'alfaTasks.activeTasks': JSON.stringify(stored) } });
-  check('B1 повторный вход: гейт пропущен', !!b.doc.querySelector('#app .app-shell') && !b.doc.querySelector('#app .gate-screen'));
+  check('B1 повторный вход: гейт открывается снова (localStorage его не пропускает)', !!b.doc.querySelector('#app .gate-screen') && !b.doc.querySelector('#app .app-shell'));
+  check('B1a согласие с актуальной редакцией: чекбокс предзаполнен', b.doc.querySelector('#consent-check')?.checked === true);
+  b.click('eligible-no');
+  check('B1b после ответа «нет, не являюсь» — вход в приложение', !!b.doc.querySelector('.app-shell'));
   b.click('nav-account');
   check('B2 сохранённое задание отрисовано', !!b.doc.querySelector('.active-task-card'));
   check('B3 без ошибок', b.errors.length === 0, b.errors.join(' | '));
   const bOld = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': '2000-01-01' } });
   check('B4 устаревшая редакция согласия: гейт запрашивается заново', !!bOld.doc.querySelector('#app .gate-screen') && !bOld.doc.querySelector('#app .app-shell'));
+  check('B4a устаревшая редакция: чекбокс согласия не предзаполнен', !!bOld.doc.querySelector('#consent-check') && bOld.doc.querySelector('#consent-check').checked === false);
+
+  // B5: webview восстановлен БЕЗ перезагрузки страницы (повторное открытие мини-аппа)
+  // — событие onAppSwitch тоже должно возвращать на гейт.
+  let switchCallback = null;
+  const bSwitch = boot({
+    telegram: {
+      WebApp: {
+        ready() {},
+        expand() {},
+        onAppSwitch(cb) { switchCallback = cb; },
+        initDataUnsafe: { user: { first_name: 'Иван', last_name: 'Петров', username: 'ivan_p' } },
+      },
+    },
+    storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': termsVersion },
+  });
+  check('B5 в Telegram подписка на onAppSwitch зарегистрирована', typeof switchCallback === 'function');
+  bSwitch.click('eligible-no');
+  check('B5a после ответа на гейте — в приложении', !!bSwitch.doc.querySelector('.app-shell'));
+  switchCallback?.();
+  check('B6 повторное открытие мини-аппа (onAppSwitch) возвращает на гейт', !!bSwitch.doc.querySelector('#app .gate-screen') && !bSwitch.doc.querySelector('#app .app-shell'));
 
   // ---------- C: профиль из Telegram ----------
   const c = boot({
@@ -195,6 +219,8 @@ function boot({ telegram = null, storage = null } = {}) {
 // ---------- G: тексты пошаговой инструкции для двух вариантов ----------
 {
   const { doc, click, errors } = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': termsVersion } });
+  // Гейт теперь открывается при каждом входе; согласие актуальной редакции — чекбокс уже предзаполнен.
+  click('eligible-no');
   click('open-reviews');
   click('to-rewards');
 
@@ -232,6 +258,7 @@ function boot({ telegram = null, storage = null } = {}) {
       'alfaTasks.activeTasks': JSON.stringify([{ id: 'reviews-small', title: 'Отзывы', rewardId: 'small', createdAt: Date.now(), stage: 'progress' }]),
     },
   });
+  click('eligible-no'); // гейт открывается при каждом входе; согласие актуальной редакции — чекбокс предзаполнен
   click('nav-account');
   check('H1 в карточке задания есть кнопка «Выполнил»', doc.querySelector('[data-action="task-done"]')?.textContent.includes('Выполнил'));
 
@@ -284,6 +311,7 @@ function boot({ telegram = null, storage = null } = {}) {
       'alfaTasks.activeTasks': window.localStorage.getItem('alfaTasks.activeTasks'),
     },
   });
+  restarted.click('eligible-no'); // гейт при каждом входе; согласие предзаполнено
   restarted.click('nav-account');
   check('H18 после перезапуска статус проверки сохранился', /Отзыв на проверке/.test(restarted.doc.querySelector('.active-task-card')?.textContent || ''));
 }
