@@ -165,6 +165,100 @@ function boot({ telegram = null, storage = null } = {}) {
   check('F2 версия кэш-бастинга одинаковая у всех ассетов', versions.size === 1, [...versions].join(','));
 }
 
+// ---------- G: тексты пошаговой инструкции для двух вариантов ----------
+{
+  const { doc, click, errors } = boot({ storage: { 'alfaTasks.accessGranted': 'true' } });
+  click('open-reviews');
+  click('to-rewards');
+
+  click('choose-reward', 'small');
+  const debitSteps = [...doc.querySelectorAll('.step-item p')].map((p) => p.textContent.trim());
+  check('G1 вариант 01: ровно 5 шагов', debitSteps.length === 5, `len=${debitSteps.length}`);
+  check('G2 шаг 1: дебетовая карта по ссылке', debitSteps[0] === 'Оформи дебетовую карту Альфа-Банк по ссылке', debitSteps[0]);
+  check('G3 шаг 2: доставка в удобное время', debitSteps[1] === 'Прими доставку продукта в удобное время', debitSteps[1]);
+  check('G4 шаг 3: покупка от 1 рубля, переводы не считаются', /от 1 рубля \(переводы не считаются\)$/.test(debitSteps[2] || ''), debitSteps[2]);
+  check('G5 шаг 4: отзыв в личном кабинете', /зайди в личный кабинет и напиши отзыв/.test(debitSteps[3] || ''), debitSteps[3]);
+  check('G6 шаг 5: 3-4 дня и награда на карту', /В течение 3-4 дней награда поступит на вашу карту$/.test(debitSteps[4] || ''), debitSteps[4]);
+  const debitNote = doc.querySelector('.step-note')?.textContent || '';
+  check('G7 P.S. про 18 лет есть у варианта 01', debitNote.includes('МЕНЬШЕ 18') && debitNote.includes('РОДИТЕЛЯ'), debitNote.slice(0, 60));
+  check('G8 шапка инструкции указывает продукт', /Дебетовая карта/.test(doc.querySelector('.selected-reward')?.textContent || ''));
+
+  click('back-step');
+  click('choose-reward', 'large');
+  click('age-yes');
+  const creditSteps = [...doc.querySelectorAll('.step-item p')].map((p) => p.textContent.trim());
+  check('G9 вариант 02: ровно 5 шагов', creditSteps.length === 5, `len=${creditSteps.length}`);
+  check('G10 шаг 1: кредитная карта по ссылке', creditSteps[0] === 'Оформи кредитную карту Альфа-Банк по ссылке', creditSteps[0]);
+  check('G11 шаг 3 совпадает с вариантом 01', creditSteps[2] === debitSteps[2], creditSteps[2]);
+  check('G12 у варианта 02 нет P.S. про 18 лет', !doc.querySelector('.step-note'));
+  check('G13 шапка инструкции указывает кредитную карту', /Кредитная карта/.test(doc.querySelector('.selected-reward')?.textContent || ''));
+  check('G14 без ошибок на обеих инструкциях', errors.length === 0, errors.join(' | '));
+}
+
+// ---------- H: «Выполнил» -> вопрос про карту -> отзыв -> проверка ----------
+{
+  const reviewText = '<b>Оформил</b> дебетовую карту за пару минут, курьер привёз в удобное время, активировал покупкой на 1 ₽.';
+  const { doc, click, window, errors } = boot({
+    storage: {
+      'alfaTasks.accessGranted': 'true',
+      'alfaTasks.activeTasks': JSON.stringify([{ id: 'reviews-small', title: 'Отзывы', rewardId: 'small', createdAt: Date.now(), stage: 'progress' }]),
+    },
+  });
+  click('nav-account');
+  check('H1 в карточке задания есть кнопка «Выполнил»', doc.querySelector('[data-action="task-done"]')?.textContent.includes('Выполнил'));
+
+  click('task-done');
+  const question = doc.querySelector('.modal-title')?.textContent || '';
+  check('H2 появляется вопрос про карту и покупку', /получил карту и совершил с ней покупку/i.test(question), question);
+  check('H3 есть варианты «да» и «нет»', !!doc.querySelector('[data-action="done-yes"]') && !!doc.querySelector('[data-action="done-no"]'));
+
+  check('H3a в вопросе назван продукт задания', /оформить дебетовую карту по ссылке/.test(doc.querySelector('.modal-sheet')?.textContent || ''), doc.querySelector('.modal-sheet')?.textContent);
+  click('done-no');
+  const waitTitle = doc.querySelector('.modal-title')?.textContent || '';
+  check('H4 «нет» -> окно «нужно дождаться выполнения условий»', /дождаться выполнения условий/i.test(waitTitle), waitTitle);
+  check('H4a в окне ожидания назван продукт', /дебетовая карта оформлена по ссылке/.test(doc.querySelector('.modal-sheet')?.textContent || ''), doc.querySelector('.modal-sheet')?.textContent);
+  check('H5 в окне ожидания есть ссылка на оформление', !!doc.querySelector('.modal-sheet a.button[href]'));
+  check('H5a в окне ожидания назван продукт и кнопка оформления', /дебетовую карту/.test(doc.querySelector('.modal-sheet')?.textContent || '') && /Оформить дебетовую карту/.test(doc.querySelector('.modal-sheet')?.textContent || ''));
+  click('close-modal');
+  check('H6 окно закрывается', !doc.querySelector('.modal-overlay'));
+  check('H7 после «нет» задание остаётся в процессе', !!doc.querySelector('[data-action="task-done"]'));
+
+  click('task-done');
+  click('done-yes');
+  const field = doc.querySelector('#review-text');
+  check('H8 «да» -> появляется поле для отзыва', !!field && !!doc.querySelector('[data-action="submit-review"]'));
+
+  if (field) field.value = 'Коротко';
+  click('submit-review');
+  check('H9 слишком короткий отзыв не отправляется', !!doc.querySelector('#review-text') && !/Отзыв проверяется/.test(doc.querySelector('.modal-sheet')?.textContent || ''));
+
+  if (field) field.value = reviewText;
+  click('submit-review');
+  const thanks = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('H10 после отправки окно «Отзыв проверяется»', /Отзыв проверяется/.test(thanks), thanks.slice(0, 70));
+  check('H11 в окне текст «Награда скоро будет у вас»', /Награда скоро будет у вас/.test(thanks));
+
+  click('close-modal');
+  const card = doc.querySelector('.active-task-card')?.textContent || '';
+  check('H12 статус карточки — «Отзыв на проверке»', /Отзыв на проверке/.test(card), card.slice(0, 60));
+  check('H13 текст отзыва показан под заданием', /курьер привёз в удобное время/.test(card));
+  check('H14 HTML из отзыва экранирован', !doc.querySelector('.task-review-block b') && /<b>Оформил<\/b>/.test(card));
+  check('H15 кнопка «Выполнил» больше не показывается', !doc.querySelector('[data-action="task-done"]'));
+
+  const stored = JSON.parse(window.localStorage.getItem('alfaTasks.activeTasks') || '[]')[0] || {};
+  check('H16 отзыв и статус сохранены в localStorage', stored.stage === 'under-review' && /курьер/.test(stored.review || ''), JSON.stringify(stored).slice(0, 110));
+  check('H17 без ошибок за весь сценарий', errors.length === 0, errors.join(' | '));
+
+  const restarted = boot({
+    storage: {
+      'alfaTasks.accessGranted': 'true',
+      'alfaTasks.activeTasks': window.localStorage.getItem('alfaTasks.activeTasks'),
+    },
+  });
+  restarted.click('nav-account');
+  check('H18 после перезапуска статус проверки сохранился', /Отзыв на проверке/.test(restarted.doc.querySelector('.active-task-card')?.textContent || ''));
+}
+
 console.log('\n=== РЕЗУЛЬТАТЫ ===');
 let failed = 0;
 for (const r of results) {
