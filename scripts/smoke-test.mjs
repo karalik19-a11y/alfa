@@ -19,6 +19,7 @@ try {
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const appJs = readFileSync(join(ROOT, 'app.js'), 'utf8');
 const profileFix = readFileSync(join(ROOT, 'profile-fix.js'), 'utf8');
+const termsVersion = (appJs.match(/const TERMS_VERSION = '([^']+)'/) || [])[1] || '';
 
 const results = [];
 const check = (name, cond, extra = '') => results.push({ name, ok: !!cond, extra });
@@ -59,10 +60,29 @@ function boot({ telegram = null, storage = null } = {}) {
 
   check('A4 «Да, являюсь» -> экран отказа', click('eligible-yes') && !!doc.querySelector('.rejected-screen'));
   check('A5 отказ: back-to-gate -> гейт', click('back-to-gate') && !!doc.querySelector('.gate-screen'));
-  check('A6 «Нет, не являюсь» -> оболочка приложения', click('eligible-no') && !!doc.querySelector('.app-shell'));
+
+  const gateText = doc.querySelector('#app')?.textContent || '';
+  check('A5a на гейте блок согласия с документами', !!doc.querySelector('.consent-block') && /Ознакомлен\(а\) и согласен\(на\)/.test(gateText));
+  check('A5a.1 чекбокс согласия не предотмечен', !!doc.querySelector('#consent-check') && !doc.querySelector('#consent-check').checked);
+  check('A5b без отметки согласия вход закрыт', click('eligible-no') && !!doc.querySelector('.gate-screen') && !doc.querySelector('.app-shell'));
+
+  check('A5c открывается Соглашение с условиями сервиса', click('open-terms') && /Соглашение с условиями сервиса/.test(doc.querySelector('.modal-title')?.textContent || ''));
+  const termsSheet = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('A5c.1 в Соглашении есть п. 4.4 про отказ от выплаты без объяснения причин', /4\.4\./.test(termsSheet) && /без объяснения причин/.test(termsSheet));
+  click('close-modal');
+  check('A5d открывается Политика конфиденциальности', click('open-privacy') && /Политика конфиденциальности/.test(doc.querySelector('.modal-title')?.textContent || '') && /152-ФЗ/.test(doc.querySelector('.modal-sheet')?.textContent || ''));
+  click('close-modal');
+
+  // В браузере и jsdom клик по чекбоксу сам переключает checked ДО обработчика,
+  // поэтому галочку симулируем так: снятый чекбокс + клик => checked станет true.
+  const consentBox = doc.querySelector('#consent-check');
+  if (consentBox) consentBox.checked = false;
+  click('toggle-consent');
+  check('A6 «Нет, не являюсь» (с согласием) -> оболочка приложения', click('eligible-no') && !!doc.querySelector('.app-shell'));
   check('A7 экран заданий отрисован', !!doc.querySelector('#tasks-heading'));
   check('A8 нижняя навигация отрисована', !!doc.querySelector('.bottom-nav'));
   check('A9 доступ сохранён', window.localStorage.getItem('alfaTasks.accessGranted') === 'true');
+  check('A9a согласие сохранено с версией редакции', window.localStorage.getItem('alfaTasks.termsConsent') === termsVersion, window.localStorage.getItem('alfaTasks.termsConsent'));
 
   check('A10 nav-account -> личный кабинет', click('nav-account') && !!doc.querySelector('#account-heading'));
   check('A11 пустое состояние в кабинете', !!doc.querySelector('.empty-state'));
@@ -90,11 +110,13 @@ function boot({ telegram = null, storage = null } = {}) {
   check('A26 за весь сценарий не было ошибок', errors.length === 0, errors.join(' | '));
 
   // ---------- B: перезапуск с сохранённым состоянием ----------
-  const b = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.activeTasks': JSON.stringify(stored) } });
+  const b = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': termsVersion, 'alfaTasks.activeTasks': JSON.stringify(stored) } });
   check('B1 повторный вход: гейт пропущен', !!b.doc.querySelector('#app .app-shell') && !b.doc.querySelector('#app .gate-screen'));
   b.click('nav-account');
   check('B2 сохранённое задание отрисовано', !!b.doc.querySelector('.active-task-card'));
   check('B3 без ошибок', b.errors.length === 0, b.errors.join(' | '));
+  const bOld = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': '2000-01-01' } });
+  check('B4 устаревшая редакция согласия: гейт запрашивается заново', !!bOld.doc.querySelector('#app .gate-screen') && !bOld.doc.querySelector('#app .app-shell'));
 
   // ---------- C: профиль из Telegram ----------
   const c = boot({
@@ -108,6 +130,11 @@ function boot({ telegram = null, storage = null } = {}) {
       },
     },
   });
+  // В браузере и jsdom клик по чекбоксу сам переключает checked ДО обработчика,
+  // поэтому галочку симулируем так: снятый чекбокс + клик => checked станет true.
+  const cBox = c.doc.querySelector('#consent-check');
+  if (cBox) cBox.checked = false;
+  c.click('toggle-consent');
   c.click('eligible-no');
   const headerName = c.doc.querySelector('.header-profile-name')?.textContent;
   check('C1 имя Telegram в шапке', headerName === 'Иван Петров', headerName);
@@ -167,7 +194,7 @@ function boot({ telegram = null, storage = null } = {}) {
 
 // ---------- G: тексты пошаговой инструкции для двух вариантов ----------
 {
-  const { doc, click, errors } = boot({ storage: { 'alfaTasks.accessGranted': 'true' } });
+  const { doc, click, errors } = boot({ storage: { 'alfaTasks.accessGranted': 'true', 'alfaTasks.termsConsent': termsVersion } });
   click('open-reviews');
   click('to-rewards');
 
@@ -201,6 +228,7 @@ function boot({ telegram = null, storage = null } = {}) {
   const { doc, click, window, errors } = boot({
     storage: {
       'alfaTasks.accessGranted': 'true',
+      'alfaTasks.termsConsent': termsVersion,
       'alfaTasks.activeTasks': JSON.stringify([{ id: 'reviews-small', title: 'Отзывы', rewardId: 'small', createdAt: Date.now(), stage: 'progress' }]),
     },
   });
@@ -252,6 +280,7 @@ function boot({ telegram = null, storage = null } = {}) {
   const restarted = boot({
     storage: {
       'alfaTasks.accessGranted': 'true',
+      'alfaTasks.termsConsent': termsVersion,
       'alfaTasks.activeTasks': window.localStorage.getItem('alfaTasks.activeTasks'),
     },
   });
@@ -259,32 +288,47 @@ function boot({ telegram = null, storage = null } = {}) {
   check('H18 после перезапуска статус проверки сохранился', /Отзыв на проверке/.test(restarted.doc.querySelector('.active-task-card')?.textContent || ''));
 }
 
-// ---------- I: правовая информация (полупрозрачная кнопка внизу + документ в шторке) ----------
+// ---------- I: правовая информация (хаб: сводка + Соглашение + Политика) ----------
 {
   const { doc, click, errors, window } = boot();
   const gateTrigger = doc.querySelector('.gate-screen [data-action="open-legal"]');
   check('I1 на гейте есть кнопка правовой информации', !!gateTrigger && gateTrigger.classList.contains('legal-trigger'));
 
   click('open-legal');
-  const legal = doc.querySelector('.modal-sheet')?.textContent || '';
-  check('I2 документ открывается в шторке даже на гейте', !!doc.querySelector('.modal-sheet .legal-doc') && /Правовая информация/.test(legal));
-  check('I3 зафиксировано «не официальный сайт» АО «Альфа-Банк»', /не является официальным сайтом/i.test(legal) && /не одобрял, не спонсирует и не администрирует/i.test(legal));
-  check('I4 товарные знаки: только номинативное использование', /номинативн/i.test(legal) && /1484 ГК РФ/.test(legal) && /правообладател/i.test(legal));
-  check('I5 раскрыты партнёрские (реферальные) ссылки', /партнёрск/i.test(legal) && /реферальн/i.test(legal) && /может получать/i.test(legal));
-  check('I6 награда — добровольная выплата администратора, не банка', /добровольным стимулирующим вознаграждением/i.test(legal) && /не является платежом, премией, кешбэком/i.test(legal));
-  check('I7 не финансовые услуги и не оферта', /не оказывает банковских, финансовых/i.test(legal) && /не является публичной офертой/i.test(legal) && /437 ГК РФ/.test(legal));
-  check('I8 персональные данные: банковские не собираются', /не запрашивает и не обрабатывает банковские/i.test(legal) && /152-ФЗ/.test(legal));
-  check('I9 «как есть» и возрастные ограничения', /как есть/i.test(legal) && /18 лет и старше/.test(legal));
-  check('I10 Telegram не причастен, претензионный порядок', /не спонсируется, не поддерживается и не администрируется Telegram/i.test(legal) && /30 \(тридцати\) календарных дней/.test(legal));
-  check('I11 есть редакция и краткая выжимка', /Редакция от 17 сентября 2026 г\./.test(legal) && /Кратко/.test(legal));
+  const hub = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('I2 хаб открывается в шторке даже на гейте', !!doc.querySelector('.modal-sheet .legal-doc') && /Правовая информация/.test(hub));
+  check('I2a в хабе карточки обоих документов', doc.querySelectorAll('.legal-doc-card').length === 2 && /Соглашение с условиями сервиса/.test(hub) && /Политика конфиденциальности/.test(hub));
+  check('I2b в хабе краткая выжимка («Кратко»)', /Кратко/.test(hub));
+
+  click('open-terms');
+  const terms = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('I3 зафиксировано «не официальный сайт» АО «Альфа-Банк»', /не является официальным сайтом/i.test(terms) && /не одобрял, не спонсирует и не администрирует/i.test(terms));
+  check('I4 товарные знаки: только номинативное использование', /номинативн/i.test(terms) && /1484 ГК РФ/.test(terms) && /правообладател/i.test(terms));
+  check('I5 раскрыты партнёрские (реферальные) ссылки', /партнёрск/i.test(terms) && /реферальн/i.test(terms) && /может получать/i.test(terms));
+  check('I6 награда — добровольная выплата администратора, не банка', /добровольным стимулирующим вознаграждением/i.test(terms) && /не является платежом, премией, кешбэком/i.test(terms));
+  check('I6a в Соглашении п. 4.4: выплата возможна не выплачиваться без объяснения причин', /4\.4\./.test(terms) && /без объяснения причин/.test(terms) && /по своему усмотрению/.test(terms));
+  check('I7 не финансовые услуги и не оферта', /не оказывает банковских, финансовых/i.test(terms) && /не является публичной офертой/i.test(terms) && /437 ГК РФ/.test(terms));
+  check('I8 персональные данные: банковские не собираются', /не запрашивает и не обрабатывает банковские/i.test(terms) && /152-ФЗ/.test(terms));
+  check('I9 «как есть» и возрастные ограничения', /как есть/i.test(terms) && /18 лет и старше/.test(terms));
+  check('I10 Telegram не причастен, претензионный порядок', /не спонсируется, не поддерживается и не администрируется Telegram/i.test(terms) && /30 \(тридцати\) календарных дней/.test(terms));
+  check('I11 есть редакция Соглашения', /Редакция Соглашения от 17 сентября 2026 г\./.test(terms));
 
   doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
   check('I12 шторка закрывается по Escape', !doc.querySelector('.modal-overlay'));
 
+  // В браузере и jsdom клик по чекбоксу сам переключает checked ДО обработчика,
+  // поэтому галочку симулируем так: снятый чекбокс + клик => checked станет true.
+  const iBox = doc.querySelector('#consent-check');
+  if (iBox) iBox.checked = false;
+  click('toggle-consent');
   click('eligible-no');
   check('I13 кнопка есть и внутри приложения (над нижней навигацией)', !!doc.querySelector('.app-main [data-action="open-legal"]'));
   click('open-legal');
-  check('I14 документ открывается и в приложении', !!doc.querySelector('.modal-sheet .legal-doc'));
+  check('I14 хаб открывается и в приложении', !!doc.querySelector('.modal-sheet .legal-doc'));
+  click('open-privacy');
+  const privacy = doc.querySelector('.modal-sheet')?.textContent || '';
+  check('I14a Политика: локальное хранение, 152-ФЗ, отзыв согласия', /localStorage/.test(privacy) && /152-ФЗ/.test(privacy) && /отзыв согласия|отозвать согласие/i.test(privacy));
+  check('I14b Политика: редакция от 17 сентября 2026 г.', /Редакция от 17 сентября 2026 г\./.test(privacy));
   click('close-modal');
   check('I15 шторка закрывается крестиком', !doc.querySelector('.modal-overlay'));
   check('I16 без ошибок за правовой сценарий', errors.length === 0, errors.join(' | '));

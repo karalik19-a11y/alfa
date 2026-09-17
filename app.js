@@ -64,7 +64,7 @@ function saveActiveTasks(tasks){try{localStorage.setItem(ACTIVE_TASKS_KEY,JSON.s
 function formatDate(timestamp){try{return new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'short'}).format(new Date(timestamp));}catch{return 'сегодня';}}
 const user=getTelegramUser();
 function readAccessFlag(){try{return localStorage.getItem(ACCESS_KEY)==='true';}catch{return false;}}
-const state={mode:readAccessFlag()?'app':'gate',view:'tasks',selectedReward:null,activeTasks:loadActiveTasks(),history:[],modal:null,dir:'none'};
+const state={mode:readAccessFlag()&&readConsent()?'app':'gate',view:'tasks',selectedReward:null,activeTasks:loadActiveTasks(),history:[],modal:null,dir:'none',consent:readConsent()};
 const app=document.querySelector('#app'); const toast=document.querySelector('#toast'); let toastTimer;
 function showToast(message){if(!toast)return;window.clearTimeout(toastTimer);toast.textContent=message;toast.classList.add('visible');toastTimer=window.setTimeout(()=>toast.classList.remove('visible'),3200);}
 function persistAccess(){try{localStorage.setItem(ACCESS_KEY,'true');}catch{}}
