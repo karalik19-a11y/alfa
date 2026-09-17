@@ -47,7 +47,7 @@ try {
   check('GET / содержит точку монтирования #app', home.body.includes('id="app"'));
   check('HTML не кэшируется', /no-(cache|store)/.test(home.cache), home.cache);
 
-  const app = await get('/app.js?v=20260917-15');
+  const app = await get('/app.js?v=20260917-16');
   check('GET /app.js -> 200', app.status === 200, `status=${app.status}`);
   check('app.js отдаётся как JavaScript', app.type.includes('javascript'), app.type);
   check('app.js кэшируется надолго', /max-age=31536000/.test(app.cache), app.cache);
